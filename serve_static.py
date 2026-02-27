@@ -50,15 +50,11 @@ def get_agent_for_user(user_id: int) -> Agent:
     """Get or create agent instance for a user"""
     if user_id not in user_agents:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        agent = Agent(device=device)
+        # Use 1 reasoning pass for faster responses (was 3)
+        agent = Agent(device=device, reasoning_passes=1)
         
-        # Quick training for new agent
-        demo_texts = [
-            "hello, this is a new brain.",
-            "this system has memory and planning.",
-            "the goal is to become more advanced over time.",
-        ]
-        train_core_on_text(agent, demo_texts, epochs=3, max_len=80, lr=1e-3)
+        # Skip training for faster first response
+        # Agent will learn from conversations naturally
         
         user_agents[user_id] = agent
     
