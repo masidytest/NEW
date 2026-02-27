@@ -202,7 +202,7 @@
         const data = await res.json();
         
         if (data.status === 'healthy') {
-          statusBar.textContent = `✓ Connected | ${data.capabilities} capabilities | ${data.memory_items} memories`;
+          statusBar.textContent = `✓ Connected as ${data.user_email}`;
           statusBar.className = 'status connected';
           input.disabled = false;
           sendBtn.disabled = false;
@@ -210,9 +210,9 @@
           addMessage('System: Connected to AI Platform. Ready to chat!', 'msg-system');
         }
       } catch (e) {
-        statusBar.textContent = '✗ Cannot connect to server. Make sure it\'s running on port 8000.';
+        statusBar.textContent = '✗ Cannot connect to server';
         statusBar.className = 'status error';
-        addMessage('Error: Cannot connect to server. Run: python app.py', 'msg-error');
+        addMessage('Error: Cannot connect to server', 'msg-error');
       }
     }
 

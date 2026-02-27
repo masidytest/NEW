@@ -320,7 +320,17 @@ async def get_plugin_proposals(current_user: User = Depends(get_current_user)):
 
 @app.get("/health")
 async def health_check(current_user: User = Depends(get_current_user)):
-    """Health check endpoint (per-user stats)"""
+    """Health check endpoint (lightweight - doesn't initialize agent)"""
+    return {
+        "status": "healthy",
+        "user_id": current_user.id,
+        "user_email": current_user.email,
+        "device": "cuda" if torch.cuda.is_available() else "cpu"
+    }
+
+@app.get("/health/full")
+async def full_health_check(current_user: User = Depends(get_current_user)):
+    """Full health check with agent stats (slower)"""
     try:
         agent = get_agent_for_user(current_user.id)
         return {
