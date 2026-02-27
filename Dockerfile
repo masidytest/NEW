@@ -1,5 +1,5 @@
 # Dockerfile
-# Production-ready Docker image for AI Platform (Railway - All-in-One)
+# Production-ready Docker image for AI Platform (Railway - CPU-only for smaller size)
 
 FROM python:3.10-slim
 
@@ -14,9 +14,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first (for better caching)
-COPY requirements.txt .
+COPY requirements-railway.txt requirements.txt
 
-# Install Python dependencies
+# Install Python dependencies (CPU-only PyTorch)
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
