@@ -30,4 +30,4 @@ ENV PORT=8000
 EXPOSE $PORT
 
 # Run the unified server (API + Static UI)
-CMD uvicorn serve_static:app --host 0.0.0.0 --port $PORT
+CMD ["sh", "-c", "uvicorn serve_static:app --host 0.0.0.0 --port ${PORT}"]
