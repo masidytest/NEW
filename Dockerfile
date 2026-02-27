@@ -25,9 +25,13 @@ COPY . .
 # Create plugins directory if it doesn't exist
 RUN mkdir -p plugins
 
+# Copy and make startup script executable
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Railway provides PORT environment variable
 ENV PORT=8000
 EXPOSE $PORT
 
 # Run the unified server (API + Static UI)
-CMD ["sh", "-c", "uvicorn serve_static:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["/app/start.sh"]
