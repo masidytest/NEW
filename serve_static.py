@@ -337,33 +337,40 @@ async def health_check(current_user: User = Depends(get_current_user)):
 
 # ============ Static File Serving ============
 
-# Mount static files (CSS, JS, images if any)
-app.mount("/static", StaticFiles(directory="web"), name="static")
-
-# Serve HTML pages
+# Serve HTML pages first (before mounting static files to avoid conflicts)
 @app.get("/")
-async def serve_index():
+async def serve_root():
+    """Serve login page at root"""
     return FileResponse("web/login.html")
 
 @app.get("/login.html")
 async def serve_login():
+    """Serve login page"""
     return FileResponse("web/login.html")
 
 @app.get("/index.html")
 async def serve_dashboard():
+    """Serve dashboard"""
     return FileResponse("web/index.html")
 
 @app.get("/chat.html")
 async def serve_chat():
+    """Serve chat page"""
     return FileResponse("web/chat.html")
 
 @app.get("/goals.html")
 async def serve_goals():
+    """Serve goals page"""
     return FileResponse("web/goals.html")
 
 @app.get("/capabilities.html")
 async def serve_capabilities():
+    """Serve capabilities page"""
     return FileResponse("web/capabilities.html")
+
+# Mount static files AFTER specific routes (CSS, JS, images if any)
+# This prevents the static file handler from catching our HTML routes
+app.mount("/static", StaticFiles(directory="web"), name="static")
 
 if __name__ == "__main__":
     import uvicorn
