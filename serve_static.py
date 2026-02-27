@@ -191,15 +191,38 @@ async def chat(
     current_user: User = Depends(get_current_user),
 ):
     """Chat endpoint - per-user agent instance"""
+    import logging
+    logger = logging.getLogger("uvicorn")
+    
     try:
+        logger.info(f"Chat request from user {current_user.id}: {req.message}")
+        
+        logger.info("Getting agent for user...")
         agent = get_agent_for_user(current_user.id)
+        
+        logger.info("Running agent engine...")
         reply = agent.engine.run(req.message)
+        
+        logger.info(f"Agent replied: {reply[:50]}...")
+        
         return ChatResponse(
             reply=reply,
             reasoning_passes=agent.engine.passes
         )
     except Exception as e:
+        logger.error(f"Chat error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
+
+@app.post("/chat/simple")
+async def simple_chat(
+    req: ChatRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Simple chat without AI - for testing"""
+    return {
+        "reply": f"Echo: {req.message} (from {current_user.email})",
+        "reasoning_passes": 0
+    }
 
 @app.post("/goals", response_model=GoalOut)
 async def create_goal(
