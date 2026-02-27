@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Goals Management</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    
+    .back-link {
+      color: #667eea;
+      text-decoration: none;
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    
+    .add-goal {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .add-goal input {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    
+    .add-goal input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .add-goal button {
+      padding: 12px 24px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .add-goal button:hover {
+      background: #5568d3;
+    }
+    
+    .goal-item {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: box-shadow 0.2s;
+    }
+    
+    .goal-item:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .goal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 8px;
+    }
+    
+    .goal-description {
+      font-size: 16px;
+      color: #2c3e50;
+      font-weight: 500;
+    }
+    
+    .goal-status {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .status-PENDING {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .status-IN_PROGRESS {
+      background: #cfe2ff;
+      color: #084298;
+    }
+    
+    .status-DONE {
+      background: #d1e7dd;
+      color: #0f5132;
+    }
+    
+    .goal-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: #666;
+      margin-top: 8px;
+    }
+    
+    .run-btn {
+      margin-top: 12px;
+      padding: 8px 16px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    
+    .run-btn:hover {
+      background: #218838;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-link">← Back to Dashboard</a>
+  <h1>🎯 Goals Management</h1>
+  
+  <div class="container">
+    <h2 style="margin-bottom: 16px;">Add New Goal</h2>
+    <div class="add-goal">
+      <input id="goal-input" type="text" placeholder="Enter goal description..." />
+      <button id="add-btn">Add Goal</button>
+    </div>
+    
+    <h2 style="margin-bottom: 16px; margin-top: 32px;">Active Goals</h2>
+    <div id="goals-list"></div>
+  </div>
+
+  <script>
+    const API_URL = window.location.origin;  // Same origin as the page
+    const goalInput = document.getElementById('goal-input');
+    const addBtn = document.getElementById('add-btn');
+    const goalsList = document.getElementById('goals-list');
+    
+    // Check authentication
+    const token = localStorage.getItem('token');
+    const userEmail = localStorage.getItem('user_email');
+    
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+    
+    async function loadGoals() {
+      try {
+        const res = await fetch(`${API_URL}/goals`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user_email');
+          window.location.href = 'login.html';
+          return;
+        }
+        const goals = await res.json();
+        
+        if (goals.length === 0) {
+          goalsList.innerHTML = '<div class="empty-state">No goals yet. Add one above!</div>';
+          return;
+        }
+        
+        goalsList.innerHTML = goals.map(goal => `
+          <div class="goal-item">
+            <div class="goal-header">
+              <div class="goal-description">${goal.description}</div>
+              <div class="goal-status status-${goal.status}">${goal.status}</div>
+            </div>
+            <div class="goal-meta">
+              <span>Priority: ${goal.priority.toFixed(1)}</span>
+              <span>Score: ${goal.score.toFixed(2)}</span>
+              <span>ID: ${goal.goal_id}</span>
+            </div>
+            ${goal.progress_notes.length > 0 ? `
+              <div style="margin-top: 12px; font-size: 13px; color: #666;">
+                <strong>Progress:</strong>
+                ${goal.progress_notes.slice(-3).map(note => `<div>• ${note}</div>`).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `).join('');
+      } catch (e) {
+        goalsList.innerHTML = '<div class="empty-state">Error loading goals</div>';
+      }
+    }
+    
+    async function addGoal() {
+      const description = goalInput.value.trim();
+      if (!description) return;
+      
+      addBtn.disabled = true;
+      addBtn.textContent = 'Adding...';
+      
+      try {
+        const res = await fetch(`${API_URL}/goals`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            description: description,
+            priority: 1.0,
+            tags: []
+          })
+        });
+        
+        if (res.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user_email');
+          window.location.href = 'login.html';
+          return;
+        }
+        
+        if (res.ok) {
+          goalInput.value = '';
+          await loadGoals();
+        }
+      } catch (e) {
+        alert('Error adding goal: ' + e.message);
+      } finally {
+        addBtn.disabled = false;
+        addBtn.textContent = 'Add Goal';
+      }
+    }
+    
+    addBtn.onclick = addGoal;
+    goalInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addGoal();
+    });
+    
+    loadGoals();
+    setInterval(loadGoals, 5000);
+  </script>
+</body>
+</html>
